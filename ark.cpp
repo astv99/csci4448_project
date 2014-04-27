@@ -57,6 +57,53 @@ class Ball  // "class" for the Ball
     Vector2f velocity{-ballVelocity, -ballVelocity};  // ball velocity
 };
 
+class BadBall  // "class" for the Ball
+{
+  public:
+    BadBall(float mX, float mY) // create the Ball constructor
+    {
+        // Apply position, radius, color, origin to 'ballobj'
+        badballobj.setPosition(mX, mY);
+        badballobj.setRadius(ballRadius);
+        badballobj.setFillColor(Color::Blue);
+        badballobj.setOrigin(ballRadius, ballRadius);
+    }
+    
+    void update()  // Move the ball at the current velocity
+    {
+        badballobj.move(velocity);
+        
+        // Keep ball inside the window
+        if (left() < 0)
+            velocity.x = ballVelocity;
+        else if (right() > windowWidth)
+            velocity.x = -ballVelocity;
+            
+        if (top() < 0)
+            velocity.y = ballVelocity;
+        else if (bottom() > windowHeight)
+            velocity.y = -ballVelocity;
+    }
+    
+    // Accessor methods
+    float x()       { return badballobj.getPosition().x; }
+    float y()       { return badballobj.getPosition().y; }
+    float left()    { return x() - badballobj.getRadius(); }
+    float right()   { return x() + badballobj.getRadius(); }
+    float top()     { return y() - badballobj.getRadius(); }
+    float bottom()  { return y() + badballobj.getRadius(); }
+    CircleShape getobj()    { return badballobj; }
+    
+    // Mutator methods
+    void setpos(float x, float y)   { badballobj.setPosition(x, y); }
+    void setvelocity_x(float x)     { velocity.x = x; }
+    void setvelocity_y(float y)     { velocity.y = y; }
+    
+  private:
+    CircleShape badballobj;  // SFML class for a circle
+    Vector2f velocity{-badballVelocity, -badballVelocity};  // ball velocity
+};
+
 class Brick
 {
   public:    
@@ -127,21 +174,26 @@ class Paddle
 
 template<class T1, class T2> bool Collision(T1& mA, T2& mB);
 void testCollision(Paddle& mPaddle, Ball& mBall);
+void testCollision(Paddle& mPaddle, BadBall& mBadBall);
 void testCollision(Brick& mBrick, Ball& mBall);
 bool testBottomCollision(Ball& mBall);
-void init(Ball& ball, vector<Brick>& bricks);
+void init(Ball& ball, BadBall& badBall, vector<Brick>& bricks);
 bool menu(Font& typeface, RenderWindow& rw);
-void gameloop(Paddle& p, Ball& ball, vector<Brick>& bricks, RenderWindow& rw, 
+void gameloop(Paddle& p, Ball& ball, BadBall& badBall, vector<Brick>& bricks, RenderWindow& rw, 
               bool& failed);
-void gameover(Paddle& p, Ball& ball, vector<Brick>& bricks, Font& typeface, 
+void gameover(Paddle& p, Ball& ball, BadBall& badBall vector<Brick>& bricks, Font& typeface, 
               RenderWindow& rw, bool& failed);
 
+int score;
+			  
 int main()
 {
     // Create instance of a Ball, Paddle, & Brick
     Ball ball{windowWidth / 2, windowHeight / 2};
+	BadBall badBall{windowWidth / 3, windowHeight / 3};
     Paddle paddle{windowWidth / 2, windowHeight - 50};
     vector<Brick> bricks;
+	score = 0;
     
     bool failed, quit;
     
@@ -166,10 +218,10 @@ int main()
         return 0;
     
     // Main gameplay loop
-    gameloop(paddle, ball, bricks, window, failed);
+    gameloop(paddle, ball, badBall bricks, window, failed);
     
     // Game-over screen w/ option to restart game
-    gameover(paddle, ball, bricks, arial, window, failed);
+    gameover(paddle, ball, badBall, bricks, arial, window, failed);
     
     return 0;
 }
@@ -199,6 +251,26 @@ void testCollision(Paddle& mPaddle, Ball& mBall)
     return;
 }
 
+void testCollision(Paddle& mPaddle, BadBall& mbadBall)
+{
+    // If no collision, exit
+    if (!Collision(mPaddle, mbadBall))
+        return;
+        
+    // Otherwise move the ball back up
+    mbadBall.setvelocity_y(-ballVelocity);
+    
+    // And direct it depending on where the paddle was hit
+    if (mbadBall.x() < mPaddle.x())
+        mbadBall.setvelocity_x(-ballVelocity);
+    else
+        mbadBall.setvelocity_x(ballVelocity);
+		
+	score--;
+        
+    return;
+}
+
 void testCollision(Brick& mBrick, Ball& mBall)
 {
     // If no collision, exit
@@ -207,6 +279,7 @@ void testCollision(Brick& mBrick, Ball& mBall)
         
     // Otherwise the brick has been hit
     mBrick.destroyed = true;
+	score++;
     
     // Calculate collision from every direction
     float overlapLeft = mBall.right() - mBrick.left();
@@ -238,9 +311,11 @@ bool testBottomCollision(Ball& mBall)
         return false;
 }
 
-void init(Ball& ball, vector<Brick>& bricks)
+void init(Ball& ball, BadBall& badBall vector<Brick>& bricks)
 {
     ball.setpos(windowWidth / 2, windowHeight / 2);
+	badBall.setpos(windowWidth / 3, windowHeight / 3);
+
     
     bricks.clear();
     for (int iX = 0; iX < countBlocksX; iX++) {
@@ -301,18 +376,22 @@ bool menu(Font& typeface, RenderWindow& rw)
     return true;
 }
 
-void gameloop(Paddle& p, Ball& ball, vector<Brick>& bricks, RenderWindow& rw, bool& failed)
+void gameloop(Paddle& p, Ball& ball, BadBall& badBall, vector<Brick>& bricks, RenderWindow& rw, bool& failed)
 {
+	Text myScore;
+    myScore.setFont(typeface);
     while (true)
     {
         rw.clear(Color::Black);  // clear the window
-        
+        title.setPosition(640, 20);
+        title.setString(score);
         // If "Esc" or "q" is pressed, quit the game
         if (Keyboard::isKeyPressed(Keyboard::Key::Escape) ||
             Keyboard::isKeyPressed(Keyboard::Key::Q))
             break;
         
         ball.update();
+		badBall.update()
         p.update();
         testCollision(p, ball);
         
@@ -334,6 +413,7 @@ void gameloop(Paddle& p, Ball& ball, vector<Brick>& bricks, RenderWindow& rw, bo
         
         // Render Ball on the window
         rw.draw(ball.getobj());
+		rw.draw(badBall.getobj());
         rw.draw(p.getobj());
         for(auto& brick : bricks) rw.draw(brick.getobj()); // C++11 'foreach'
         rw.display();
@@ -342,7 +422,7 @@ void gameloop(Paddle& p, Ball& ball, vector<Brick>& bricks, RenderWindow& rw, bo
     return;
 }
 
-void gameover(Paddle& p, Ball& ball, vector<Brick>& bricks, Font& typeface, 
+void gameover(Paddle& p, Ball& ball, BadBall& badBall, vector<Brick>& bricks, Font& typeface, 
               RenderWindow& rw, bool& failed)
 {
     while (true)
@@ -377,8 +457,9 @@ void gameover(Paddle& p, Ball& ball, vector<Brick>& bricks, Font& typeface,
             break;
             
         if (Keyboard::isKeyPressed(Keyboard::Key::Y)) {
-            init(ball, bricks);
-            gameloop(p, ball, bricks, rw, failed);
+            init(ball, badBall, bricks);\
+			score = 0;
+            gameloop(p, ball, badBall, bricks, rw, failed);
         }
             
         else if (Keyboard::isKeyPressed(Keyboard::Key::N))

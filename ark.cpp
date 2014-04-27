@@ -136,12 +136,15 @@ void gameloop(Paddle& p, Ball& ball, vector<Brick>& bricks, RenderWindow& rw,
 void gameover(Paddle& p, Ball& ball, vector<Brick>& bricks, Font& typeface, 
               RenderWindow& rw, bool& failed);
 
+int score;
+			  
 int main()
 {
     // Create instance of a Ball, Paddle, & Brick
     Ball ball{windowWidth / 2, windowHeight / 2};
     Paddle paddle{windowWidth / 2, windowHeight - 50};
     vector<Brick> bricks;
+	score = 0;
     
     bool failed, quit;
     
@@ -207,6 +210,7 @@ void testCollision(Brick& mBrick, Ball& mBall)
         
     // Otherwise the brick has been hit
     mBrick.destroyed = true;
+	score++;
     
     // Calculate collision from every direction
     float overlapLeft = mBall.right() - mBrick.left();
@@ -303,10 +307,13 @@ bool menu(Font& typeface, RenderWindow& rw)
 
 void gameloop(Paddle& p, Ball& ball, vector<Brick>& bricks, RenderWindow& rw, bool& failed)
 {
+	Text myScore;
+    myScore.setFont(typeface);
     while (true)
     {
         rw.clear(Color::Black);  // clear the window
-        
+        title.setPosition(640, 20);
+        title.setString(score);
         // If "Esc" or "q" is pressed, quit the game
         if (Keyboard::isKeyPressed(Keyboard::Key::Escape) ||
             Keyboard::isKeyPressed(Keyboard::Key::Q))
@@ -377,7 +384,8 @@ void gameover(Paddle& p, Ball& ball, vector<Brick>& bricks, Font& typeface,
             break;
             
         if (Keyboard::isKeyPressed(Keyboard::Key::Y)) {
-            init(ball, bricks);
+            init(ball, bricks);\
+			score = 0;
             gameloop(p, ball, bricks, rw, failed);
         }
             

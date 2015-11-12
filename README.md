@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # CSCI 4448 Final Project #
 
 - *Authors*:			Stephen Ham, Josh Weaver
@@ -65,12 +64,3 @@ The program does not have mouse support and clicking on its window may cause col
 **References**
 
 The initial version of our source code was transcribed from Vittorio Romeo's original video: [https://www.youtube.com/watch?v=_4K3tsKa1Uc](https://www.youtube.com/watch?v=_4K3tsKa1Uc "Arkanoid video")
-=======
-csci4448_project
-================
-
-Class project for CSCI 4448
-
-Includes:
-* ark.cpp
->>>>>>> d56a34e202ad00a10ca5af72e86ab6b0c0fc2aec
